@@ -27,11 +27,15 @@ def main():
     line = sys.stdin.readline().strip()
 
     while line:
+        verbose = line.endswith('?')
+
         tokens = re.findall('\d{1,2}:\d{2}|\d{1,2}|\.+|-|\+', line)
 
         dots = [i for i, x in enumerate(tokens) if '.' in str(x)]
         for i in dots:
             tokens[i] = timediff(tokens[i-1], tokens[i+1])
+            if verbose:
+                print('. %s to %s = %d minutes (%s)' % (tokens[i-1], tokens[i+1], tokens[i], mintotime(tokens[i])))
             tokens[i-1] = None
             tokens[i+1] = None
 
@@ -39,17 +43,29 @@ def main():
 
         composites = [i for i, x in enumerate(tokens) if ':' in str(x)]
         for i in composites:
-            tokens[i] = timetomin(tokens[i])
+            t = timetomin(tokens[i])
+            if verbose:
+                print('> %s = %d minutes (%s)' % (tokens[i], t, mintotime(t)))
+            tokens[i] = t
 
         sum = 0
         while tokens:
             if tokens[0] not in ['-', '+']:
-                sum += int(tokens[0])
+                tokens[0] = int(tokens[0])
+                sum += tokens[0]
+                if verbose:
+                    print('< %d minutes = %d total (%s)' % (tokens[0], sum, mintotime(sum)))
             elif tokens[0] == '-':
-                sum -= int(tokens[1])
+                tokens[1] = int(tokens[1])
+                sum -= tokens[1]
+                if verbose:
+                    print('- %d minutes = %d total (%s)' % (tokens[1], sum, mintotime(sum)))
                 del tokens[1]
             elif tokens[0] == '+':
-                sum += int(tokens[1])
+                tokens[1] = int(tokens[1])
+                sum += tokens[1]
+                if verbose:
+                    print('+ %d minutes = %d total (%s)' % (tokens[1], sum, mintotime(sum)))
                 del tokens[1]
             del tokens[0]
 
